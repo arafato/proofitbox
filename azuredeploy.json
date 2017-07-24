@@ -1,0 +1,162 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The common prefix for most resources."
+      }
+    },
+    "repositoryUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Repository path with latest revision included"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "arafato",
+      "metadata": {
+        "description": "Standard username for all VMs"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "!QAYxsw2§EDC",
+      "metadata": {
+        "description": "Standard Password used for all Windows/Linux VMs"
+      }
+    }
+  },
+  "variables": {
+    "names": {
+      "vnetPublic": "[concat(parameters('projectPrefix'), '-vnet-public')]",
+      "vnetPublicSubGE": "[concat(parameters('projectPrefix'), '-subnet-ge')]",
+      "vnetPublicSubShared": "[concat(parameters('projectPrefix'), '-subnet-shared')]"
+    },
+    "vnets": {
+      "public": {
+        "name": "[variables('names').vnetPublic]",
+        "range": "10.0.0.0/16",
+        "subnet": {
+          "GE": {
+            "name": "[variables('names').vnetPublicSubGE]",
+            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPublic, '/subnets/', variables('names').vnetPublicSubGE)]",
+            "nsgName": "nsg-public-ge",
+            "addressRangePrefix": "10.0.0",
+            "address": "10.0.1.0/24"
+          },
+          "shared": {
+            "name": "[variables('names').vnetPublicSubShared]",
+            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPublic, '/subnets/', variables('names').vnetPublicSubShared)]",
+            "nsgName": "nsg-public-shared",
+            "addressRangePrefix": "10.0.0",
+            "address": "10.0.2.0/24"
+          }
+        }
+      }
+    },
+    "commonSettings": {
+      "resPrefix": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name)]",
+      "projectPrefix": "[parameters('projectPrefix')]",
+      "repositoryUrl": "[parameters('repositoryUrl')]",
+      "stdUbuntuImage": {
+        "publisher": "Canonical",
+        "offer": "UbuntuServer",
+        "sku": "16.04.0-LTS",
+        "version": "latest"
+      },
+      "stdWindowsImage": {
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2012-R2-Datacenter",
+        "version": "latest"
+      },
+      "stdVmSize": "Standard_A0",
+      "stdUsername": "[parameters('adminUsername')]",
+      "stdPassword": "[parameters('adminPassword')]",
+      "apiVersions": {
+        "storageAccounts": "2016-12-01",
+        "networkSecurityGroups": "2016-03-30",
+        "loadBalancers": "2016-03-30",
+        "virtualNetworks": "2016-03-30",
+        "publicIPAddresses": "2016-03-30",
+        "networkInterfaces": "2016-03-30",
+        "compute": "2016-03-30",
+        "deployments": "2016-09-01",
+        "cache": "2016-03-30",
+        "extensions": "2015-06-15"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "nsg",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('commonSettings').repositoryUrl, 'nsg.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "commonSettings": {
+            "value": "[variables('commonSettings')]"
+          },
+          "vnets": {
+            "value": "[variables('vnets')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "vnet",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('commonSettings').repositoryUrl, 'vnet.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "commonSettings": {
+            "value": "[variables('commonSettings')]"
+          },
+          "vnets": {
+            "value": "[variables('vnets')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'nsg')]"
+      ]
+    },
+    {
+      "name": "public-frontend",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('commonSettings').repositoryUrl, 'public-frontend.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "commonSettings": {
+            "value": "[variables('commonSettings')]"
+          },
+          "vnets": {
+            "value": "[variables('vnets')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'nsg')]",
+        "[concat('Microsoft.Resources/deployments/', 'vnet')]"
+      ]
+    }
+  ]
+}
