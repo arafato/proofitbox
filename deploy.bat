@@ -8,4 +8,4 @@ set location=northeurope
 
 az group create -n %rg% -l %location%
 
-az group deployment create -g %rg% --template-uri %repositoryUrl%/azuredeploy.json --parameters adminUsername=%1 --parameters password=%2 --parameters prefix=%3 --parameters repositoryUrl=%repositoryUrl%
+az group deployment create -g %rg% --template-uri %repositoryUrl%/azuredeploy.json --parameters adminUsername=%1 --parameters adminPassword=%2 --parameters projectPrefix=%3 --parameters repositoryUrl=%repositoryUrl%

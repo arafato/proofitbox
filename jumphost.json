@@ -1,0 +1,60 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "commonSettings": {
+            "type": "object"
+        },
+        "vnets": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "commonSettings": "[parameters('commonSettings')]",
+        "api": "[parameters('commonSettings').apiVersions]",
+        "repositoryUrl": "[parameters('commonSettings').repositoryUrl]",
+        "vnet": "[parameters('vnets').public]",
+        "adminUsername": "[parameters('commonSettings').stdUsername]",
+        "adminPassword": "[parameters('commonSettings').stdPassword]",
+        "adminSecureShellKey": "[parameters('commonSettings').stdSecureShellKey]"
+    },
+    "resources": [
+        {
+            "name": "Jumphost",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('api').deployments]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('repositoryUrl'), 'windows-vm.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "commonSettings": {
+                        "value": "[variables('commonSettings')]"
+                    },
+                    "subnet": {
+                        "value": "[variables('vnet').subnet.frontend]"
+                    },
+                    "name": {
+                        "value": "jumphost"
+                    },
+                    "username": {
+                        "value": "[variables('adminUsername')]"
+                    },
+                    "password": {
+                        "value": "[variables('adminPassword')]"
+                    },
+                    "scriptExtensionSettings": {
+                        "value": {
+                            "fileUris": [
+                                "[uri(deployment().properties.templateLink.uri, 'scripts/DisableFirewall.ps1')]"
+                            ],
+                            "commandToExecute": "[concat('PowerShell.exe -ExecutionPolicy Bypass -File DisableFirewall.ps1')]"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

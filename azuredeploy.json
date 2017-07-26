@@ -31,28 +31,36 @@
   },
   "variables": {
     "names": {
-      "vnetPublic": "[concat(parameters('projectPrefix'), '-vnet-public')]",
-      "vnetPublicSubGE": "[concat(parameters('projectPrefix'), '-subnet-ge')]",
-      "vnetPublicSubShared": "[concat(parameters('projectPrefix'), '-subnet-shared')]"
+      "vnetPb": "[concat(parameters('projectPrefix'), '-vnet-pb')]",
+      "vnetSubFrontend": "[concat(parameters('projectPrefix'), 'pb-subnet-frontend')]",
+      "vnetSubDb": "[concat(parameters('projectPrefix'), 'pb-subnet-db')]",
+      "vnetSubNam": "[concat(parameters('projectPrefix'), 'pb-subnet-nam')]"
     },
     "vnets": {
-      "public": {
-        "name": "[variables('names').vnetPublic]",
+      "pb": {
+        "name": "[variables('names').vnetPb]",
         "range": "10.0.0.0/16",
         "subnet": {
-          "GE": {
-            "name": "[variables('names').vnetPublicSubGE]",
-            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPublic, '/subnets/', variables('names').vnetPublicSubGE)]",
-            "nsgName": "nsg-public-ge",
+          "frontend": {
+            "name": "[variables('names').vnetSubFrontend]",
+            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPb, '/subnets/', variables('names').vnetSubFrontend)]",
+            "nsgName": "nsg-pb-frontend",
             "addressRangePrefix": "10.0.0",
             "address": "10.0.1.0/24"
           },
-          "shared": {
-            "name": "[variables('names').vnetPublicSubShared]",
-            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPublic, '/subnets/', variables('names').vnetPublicSubShared)]",
-            "nsgName": "nsg-public-shared",
+          "db": {
+            "name": "[variables('names').vnetSubDb]",
+            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPb, '/subnets/', variables('names').vnetSubDb)]",
+            "nsgName": "nsg-pb-db",
             "addressRangePrefix": "10.0.0",
             "address": "10.0.2.0/24"
+          },
+          "nam": {
+            "name": "[variables('names').vnetSubNam]",
+            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPb, '/subnets/', variables('names').vnetSubNam)]",
+            "nsgName": "nsg-pb-nam",
+            "addressRangePrefix": "10.0.0",
+            "address": "10.0.3.0/24"
           }
         }
       }
@@ -61,16 +69,16 @@
       "resPrefix": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name)]",
       "projectPrefix": "[parameters('projectPrefix')]",
       "repositoryUrl": "[parameters('repositoryUrl')]",
-      "stdUbuntuImage": {
-        "publisher": "Canonical",
-        "offer": "UbuntuServer",
-        "sku": "16.04.0-LTS",
-        "version": "latest"
-      },
       "stdWindowsImage": {
         "publisher": "MicrosoftWindowsServer",
         "offer": "WindowsServer",
         "sku": "2012-R2-Datacenter",
+        "version": "latest"
+      },
+      "stdMSQLImage": {
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "SQL2016SP1-WS2016",
+        "sku": "Standard",
         "version": "latest"
       },
       "stdVmSize": "Standard_A0",

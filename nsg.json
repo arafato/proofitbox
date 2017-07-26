@@ -1,0 +1,87 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "commonSettings": {
+            "type": "object"
+        },
+        "vnets": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "vnets": "[parameters('vnets')]",
+        "api": "[parameters('commonSettings').apiVersions.networkSecurityGroups]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[variables('api')]",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('vnets').public.subnet.GE.nsgName]",
+            "tags": {
+                "displayName": "NetworkSecurityGroup GE"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "block-everything",
+                        "properties": {
+                            "priority": 4096,
+                            "description": "Block all inbound traffic",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "protocol": "*",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "SFTP",
+                        "properties": {
+                            "priority": 101,
+                            "description": "Allow SFTP",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
+                            "destinationPortRange": "22"
+                        }
+                    },
+                    {
+                        "name": "RDP",
+                        "properties": {
+                            "priority": 102,
+                            "description": "Allow RDP",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "http-in",
+                        "properties": {
+                            "priority": 103,
+                            "description": "Allow TCP/80 Inbound",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
+                            "destinationPortRange": "80"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
