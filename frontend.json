@@ -25,7 +25,7 @@
         "adminUsername": "[parameters('commonSettings').stdUsername]",
         "adminPassword": "[parameters('commonSettings').stdPassword]",
         "initialVmssSize": 2,
-        "vmNamePrefix": "[concat(variables('projectPrefix'), 'frontend-vm')]"
+        "vmNamePrefix": "fe-vm"
     },
     "resources": [
         {
