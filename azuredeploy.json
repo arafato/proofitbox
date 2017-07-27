@@ -90,7 +90,7 @@
         "sku": "Standard",
         "version": "latest"
       },
-      "stdVmSize": "Standard_A0",
+      "stdVmSize": "Standard_A2",
       "stdUsername": "[parameters('adminUsername')]",
       "stdPassword": "[parameters('adminPassword')]",
       "apiVersions": {
