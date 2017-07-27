@@ -53,7 +53,7 @@
                                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('projectPrefix'), variables('vmname'), '-pupip'))]"
                             },
                             "subnet": {
-                                "id": "[variables('vnets').pb.bastion.id]"
+                                "id": "[variables('vnets').pb.subnet.bastion.id]"
                             }
                         }
                     }
