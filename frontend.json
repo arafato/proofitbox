@@ -19,6 +19,7 @@
         "vmssName": "[concat(variables('projectPrefix'), 'vmss-frontend')]",
         "publicIP": "[concat(variables('vmssName'), '-pubip')]",
         "loadbalancerName": "[concat(variables('vmssName'), '-lb')]",
+        "loadbalancerId": "[resourceId('Microsoft.Network/loadBalancers', variables('loadbalancerName'))]",
         "backendPoolName": "[concat(variables('loadbalancerName'), '-bepool')]",
         "api": "[parameters('commonSettings').apiVersions]",
         "adminUsername": "[parameters('commonSettings').stdUsername]",
@@ -114,7 +115,7 @@
                                                 },
                                                 "loadBalancerBackendAddressPools": [
                                                     {
-                                                        "id": "[resourceId('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), 'backendAddressPools', variables('backendPoolName'))]"
+                                                        "id": "[concat(variables('loadbalancerId'), '/backendAddressPools/', variables('backendPoolName'))]"
                                                     }
                                                 ]
                                             }
