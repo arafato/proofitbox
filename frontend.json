@@ -1,0 +1,145 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "commonSettings": {
+            "type": "object"
+        },
+        "vnets": {
+            "type": "object"
+        },
+        "scriptExtensionSettings": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "commonSettings": "[parameters('commonSettings')]",
+        "projectPrefix": "[parameters('commonSettings').projectPrefix]",
+        "vnets": "[parameters('vnets')]",
+        "vmssName": "[concat(variables('projectPrefix'), 'vmss-frontend')]",
+        "publicIP": "[concat(variables('vmssName'), '-pubip')]",
+        "loadbalancerName": "[concat(variables('vmssName'), '-lb')]",
+        "backendPoolName": "[concat(variables('loadbalancerName'), '-bepool')]",
+        "api": "[parameters('commonSettings').apiVersions]",
+        "adminUsername": "[parameters('commonSettings').stdUsername]",
+        "adminPassword": "[parameters('commonSettings').stdPassword]",
+        "initialVmssSize": 2,
+        "vmNamePrefix": "[concat(variables('projectPrefix'), 'frontend-vm')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIP')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api').publicIPAddresses]",
+            "tags": {
+                "displayName": "PublicIP Frontend Loadbalancer"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(variables('vmssName'), '-host')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[variables('loadBalancerName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api').loadBalancers]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIP'))]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "LoadBalancerFrontEnd",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIP'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('backendPoolName')]"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "name": "[variables('vmssName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api').compute]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
+            ],
+            "sku": {
+                "name": "[variables('commonSettings').stdVmSize]",
+                "tier": "Standard",
+                "capacity": "[variables('initialVmssSize')]"
+            },
+            "properties": {
+                "overprovision": "true",
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite"
+                        },
+                        "imageReference": "[variables('commonSettings').stdWindowsImage]"
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[variables('vmNamePrefix')]",
+                        "adminUsername": "[variables('adminUsername')]",
+                        "adminPassword": "[variables('adminPassword')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[concat(variables('projectPrefix'), '-vmss-nw-config')]",
+                                "properties": {
+                                    "primary": "true",
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(variables('projectPrefix'), 'vmss-ipConfig')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[variables('vnets').pb.subnet.frontend.id]"
+                                                },
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[resourceId('Microsoft.Network/loadBalancers', variables('backendPoolName'))]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "customScript",
+                                "properties": {
+                                    "publisher": "Microsoft.Compute",
+                                    "typeHandlerVersion": "1.8",
+                                    "autoUpgradeMinorVersion": true,
+                                    "type": "CustomScriptExtension",
+                                    "settings": "[parameters('scriptExtensionSettings')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

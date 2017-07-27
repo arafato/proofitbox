@@ -1,45 +1,54 @@
 {
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "commonSettings": {
-      "type": "object"
-    },
-    "vnets": {
-        "type": "object"
-    }
-  },
-  "variables": {
-    "vnets": "[parameters('vnets')]",
-    "api": "[parameters('commonSettings').apiVersions.virtualNetworks]"
-  },
-  "resources": [
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('vnets').pb.name]",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "[variables('api')]",
-      "tags": {
-        "displayName": "VirtualNetwork ProofitBox"
-      },
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('vnets').pb.range]"
-          ]
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "commonSettings": {
+            "type": "object"
         },
-        "subnets": [
-          {
-            "name": "[variables('vnets').pb.subnet.bastion.name]",
+        "vnets": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "vnets": "[parameters('vnets')]",
+        "api": "[parameters('commonSettings').apiVersions.virtualNetworks]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnets').pb.name]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api')]",
+            "tags": {
+                "displayName": "VirtualNetwork ProofitBox"
+            },
             "properties": {
-              "addressPrefix": "[variables('vnets').pb.subnet.bastion.address]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vnets').pb.subnet.bastion.nsgName)]"
-              }
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vnets').pb.range]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vnets').pb.subnet.bastion.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('vnets').pb.subnet.bastion.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vnets').pb.subnet.bastion.nsgName)]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('vnets').pb.subnet.frontend.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('vnets').pb.subnet.frontend.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vnets').pb.subnet.frontend.nsgName)]"
+                            }
+                        }
+                    }
+                ]
             }
-          }
-        ]
-      }
-    }
-  ]
+        }
+    ]
 }

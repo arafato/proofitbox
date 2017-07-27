@@ -91,14 +91,6 @@
                     },
                     "networkInterface": {
                         "value": "[concat(variables('projectPrefix'), variables('vmname'), '-nic')]"
-                    },
-                    "scriptExtensionSettings": {
-                        "value": {
-                            "fileUris": [
-                                "[uri(deployment().properties.templateLink.uri, 'scripts/DisableFirewall.ps1')]"
-                            ],
-                            "commandToExecute": "[concat('PowerShell.exe -ExecutionPolicy Bypass -File DisableFirewall.ps1')]"
-                        }
                     }
                 }
             }
