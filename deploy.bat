@@ -1,7 +1,7 @@
 @echo off
 for /f %%a in ('git rev-parse HEAD') do set "branch=%%a"
 
-set repositoryUrl="https://raw.githubusercontent.com/arafato/proofitbox/%branch%"
+set repositoryUrl="https://raw.githubusercontent.com/arafato/proofitbox/%branch%/"
 
 set rg=proofitbox-deployment
 set location=northeurope
