@@ -61,7 +61,7 @@
             }
         },
         {
-            "name": "[variables('vmname')]",
+            "name": "[concat('JumphostDeployment-', variables('vmname'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('api').deployments]",
             "dependsOn": [

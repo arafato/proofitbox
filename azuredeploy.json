@@ -152,7 +152,7 @@
       ]
     },
     {
-      "name": "jumphost",
+      "name": "JumphostDeployment",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
       "properties": {
