@@ -94,16 +94,15 @@
       "stdUsername": "[parameters('adminUsername')]",
       "stdPassword": "[parameters('adminPassword')]",
       "apiVersions": {
-        "storageAccounts": "2016-12-01",
-        "networkSecurityGroups": "2016-03-30",
-        "loadBalancers": "2016-03-30",
-        "virtualNetworks": "2016-03-30",
-        "publicIPAddresses": "2016-03-30",
-        "networkInterfaces": "2016-03-30",
-        "compute": "2016-03-30",
-        "deployments": "2016-09-01",
-        "cache": "2016-03-30",
-        "extensions": "2015-06-15"
+        "storageAccounts": "2017-06-01",
+        "networkSecurityGroups": "2017-03-01",
+        "loadBalancers": "2017-03-01",
+        "virtualNetworks": "2017-03-01",
+        "publicIPAddresses": "2017-03-01",
+        "networkInterfaces": "2017-03-01",
+        "compute": "2017-03-30",
+        "deployments": "2017-05-10",
+        "extensions": "2017-03-30"
       }
     }
   },
