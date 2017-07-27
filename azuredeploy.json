@@ -4,7 +4,7 @@
   "parameters": {
     "projectPrefix": {
       "type": "string",
-      "defaultValue": "[uniqueString(subscription().subscriptionId)]",
+      "defaultValue": "p1",
       "metadata": {
         "description": "The common prefix for most resources."
       }
