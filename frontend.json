@@ -183,7 +183,7 @@
                 "[concat('Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName'))]"
             ],
             "properties": {
-                "name": "cpuautoscale",
+                "name": "[concat(variables('vmssName'), '-autoscale')]",
                 "targetResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName'))]",
                 "enabled": true,
                 "profiles": [
