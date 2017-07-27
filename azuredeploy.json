@@ -34,7 +34,8 @@
       "vnetPb": "[concat(parameters('projectPrefix'), '-vnet-pb')]",
       "vnetSubFrontend": "[concat(parameters('projectPrefix'), 'pb-subnet-frontend')]",
       "vnetSubDb": "[concat(parameters('projectPrefix'), 'pb-subnet-db')]",
-      "vnetSubNam": "[concat(parameters('projectPrefix'), 'pb-subnet-nam')]"
+      "vnetSubNam": "[concat(parameters('projectPrefix'), 'pb-subnet-nam')]",
+      "vnetSubBastion": "[concat(parameters('projectPrefix'), 'pb-subnet-bastion')]"
     },
     "vnets": {
       "pb": {
@@ -61,6 +62,13 @@
             "nsgName": "nsg-pb-nam",
             "addressRangePrefix": "10.0.0",
             "address": "10.0.3.0/24"
+          },
+          "bastion": {
+            "name": "[variables('names').vnetSubBastion]",
+            "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPb, '/subnets/', variables('names').vnetSubBastion)]",
+            "nsgName": "nsg-pb-nam",
+            "addressRangePrefix": "10.0.0",
+            "address": "10.0.4.0/24"
           }
         }
       }
@@ -143,13 +151,13 @@
       ]
     },
     {
-      "name": "public-frontend",
+      "name": "jumphost",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[concat(variables('commonSettings').repositoryUrl, 'public-frontend.json')]",
+          "uri": "[concat(variables('commonSettings').repositoryUrl, 'jumphost.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {

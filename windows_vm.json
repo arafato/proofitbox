@@ -37,6 +37,9 @@
                 "tier": "Standard"
             }
         },
+        "networkInterface": {
+            "type": "string"
+        },
         "scriptExtensionSettings": {
             "type": "object",
             "defaultValue": {
@@ -55,77 +58,19 @@
             "storageName": "[concat(uniqueString(resourceGroup().id), variables('name'), 'host')]",
             "username": "[parameters('username')]",
             "password": "[parameters('password')]",
-            "pubip": "[concat(variables('projectPrefix'), '-', variables('name'), '-pubip')]",
-            "dnsLabel": "[concat(variables('projectPrefix'), variables('name'), 'host')]",
             "nicName": "[concat(variables('projectPrefix'), '-', variables('name'), '-nic')]",
             "imageReference": "[parameters('image')]",
             "vmSize": "[parameters('vmSize')]",
+            "networkInterfaceName": "[parameters('networkInterface')]",
             "scriptExtensionSettings": "[parameters('scriptExtensionSettings')]"
         }
     },
     "resources": [
         {
-            "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[variables('server').pubip]",
-            "location": "[resourceGroup().location]",
-            "apiVersion": "[variables('api').publicIPAddresses]",
-            "tags": {
-                "displayName": "PublicIP RDP-Host"
-            },
-            "properties": {
-                "publicIPAllocationMethod": "Dynamic",
-                "dnsSettings": {
-                    "domainNameLabel": "[variables('server').dnsLabel]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('server').nicName]",
-            "apiVersion": "[variables('api').networkInterfaces]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses/', variables('server').pubip)]"
-            ],
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('server').pubip)]"
-                            },
-                            "subnet": {
-                                "id": "[variables('subnet').id]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('server').storageName]",
-            "apiVersion": "[variables('api').storageAccounts]",
-            "location": "[resourceGroup().location]",
-            "properties": {},
-            "kind": "Storage",
-            "sku": "[variables('storageSKU')]",
-            "tags": {
-                "displayName": "StorageAccount RDP-Host"
-            }
-        },
-        {
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('server').name]",
             "apiVersion": "[variables('api').compute]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces/', variables('server').nicName)]",
-                "[resourceId('Microsoft.Network/publicIPAddresses/', variables('server').pubip)]",
-                "[resourceId('Microsoft.Storage/storageAccounts/', variables('server').storageName)]"
-            ],
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[variables('server').vmSize]"
@@ -138,10 +83,6 @@
                 "storageProfile": {
                     "imageReference": "[variables('server').imageReference]",
                     "osDisk": {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('https://', variables('server').storageName, '.blob.core.windows.net/', 'vhds/', 'osDisk.vhd')]"
-                        },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
                     }
@@ -149,7 +90,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('server').nicName)]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('server').networkInterfaceName)]"
                         }
                     ]
                 }

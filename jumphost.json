@@ -11,18 +11,62 @@
     },
     "variables": {
         "commonSettings": "[parameters('commonSettings')]",
+        "projectPrefix": "[parameters('commonSettings').projectPrefix]",
+        "vnets": "[parameters('vnets')]",
+        "vmname": "jumphost",
         "api": "[parameters('commonSettings').apiVersions]",
         "repositoryUrl": "[parameters('commonSettings').repositoryUrl]",
-        "vnet": "[parameters('vnets').public]",
         "adminUsername": "[parameters('commonSettings').stdUsername]",
-        "adminPassword": "[parameters('commonSettings').stdPassword]",
-        "adminSecureShellKey": "[parameters('commonSettings').stdSecureShellKey]"
+        "adminPassword": "[parameters('commonSettings').stdPassword]"
     },
     "resources": [
         {
-            "name": "Jumphost",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('projectPrefix'), variables('vmname'), '-pupip')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api').publicIPAddresses]",
+            "tags": {
+                "displayName": "PublicIP Jumphost"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(variables('projectPrefix'), variables('vmname'), '-host')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('projectPrefix'), variables('vmname'), '-nic')]",
+            "apiVersion": "[variables('api').networkInterfaces]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses/', concat(variables('projectPrefix'), variables('vmname'), '-pupip'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('projectPrefix'), variables('vmname'), '-pupip'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('vnets').pb.bastion.id]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmname')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('api').deployments]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('projectPrefix'), variables('vmname'), '-nic'))]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -34,7 +78,7 @@
                         "value": "[variables('commonSettings')]"
                     },
                     "subnet": {
-                        "value": "[variables('vnet').subnet.frontend]"
+                        "value": "[variables('vnets').pb.subnet.frontend]"
                     },
                     "name": {
                         "value": "jumphost"
@@ -44,6 +88,9 @@
                     },
                     "password": {
                         "value": "[variables('adminPassword')]"
+                    },
+                    "networkInterface": {
+                        "value": "[concat(variables('projectPrefix'), variables('vmname'), '-nic')]"
                     },
                     "scriptExtensionSettings": {
                         "value": {

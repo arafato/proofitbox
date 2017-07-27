@@ -18,9 +18,9 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "[variables('api')]",
             "location": "[resourceGroup().location]",
-            "name": "[variables('vnets').public.subnet.GE.nsgName]",
+            "name": "[variables('vnets').pb.subnet.bastion.nsgName]",
             "tags": {
-                "displayName": "NetworkSecurityGroup GE"
+                "displayName": "NetworkSecurityGroup Bastion"
             },
             "properties": {
                 "securityRules": [
@@ -34,22 +34,8 @@
                             "protocol": "*",
                             "sourceAddressPrefix": "*",
                             "sourcePortRange": "*",
-                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
+                            "destinationAddressPrefix": "[variables('vnets').pb.subnet.bastion.address]",
                             "destinationPortRange": "*"
-                        }
-                    },
-                    {
-                        "name": "SFTP",
-                        "properties": {
-                            "priority": 101,
-                            "description": "Allow SFTP",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "protocol": "Tcp",
-                            "sourceAddressPrefix": "*",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
-                            "destinationPortRange": "22"
                         }
                     },
                     {
@@ -62,22 +48,8 @@
                             "protocol": "Tcp",
                             "sourceAddressPrefix": "*",
                             "sourcePortRange": "*",
-                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
+                            "destinationAddressPrefix": "[variables('vnets').pb.subnet.bastion.address]",
                             "destinationPortRange": "3389"
-                        }
-                    },
-                    {
-                        "name": "http-in",
-                        "properties": {
-                            "priority": 103,
-                            "description": "Allow TCP/80 Inbound",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "protocol": "Tcp",
-                            "sourceAddressPrefix": "*",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "[variables('vnets').public.subnet.GE.address]",
-                            "destinationPortRange": "80"
                         }
                     }
                 ]
