@@ -83,6 +83,7 @@
                 "storageProfile": {
                     "imageReference": "[variables('server').imageReference]",
                     "osDisk": {
+                        "name": "[concat(variables('server').name, 'OSDisk')]",
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
                     }
