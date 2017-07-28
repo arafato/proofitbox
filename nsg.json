@@ -206,7 +206,7 @@
                     {
                         "name": "Allow-Frontend-DB",
                         "properties": {
-                            "priority": 103,
+                            "priority": 104,
                             "description": "Allow NAM",
                             "access": "Allow",
                             "direction": "Inbound",
