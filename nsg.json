@@ -135,7 +135,7 @@
                         }
                     },
                     {
-                        "name": "RDP-Bastion",
+                        "name": "Allow Frontend Subnet",
                         "properties": {
                             "priority": 103,
                             "description": "Allow RDP",

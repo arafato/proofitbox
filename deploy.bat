@@ -3,7 +3,7 @@ for /f %%a in ('git rev-parse HEAD') do set "branch=%%a"
 
 set repositoryUrl="https://raw.githubusercontent.com/arafato/proofitbox/%branch%/"
 
-set rg=proofitbox-deployment2
+set rg=proofitbox-deployment1
 set location=northeurope
 
 call az group create -n %rg% -l %location%
