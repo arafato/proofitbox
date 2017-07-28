@@ -1,0 +1,108 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "commonSettings": {
+            "type": "object"
+        },
+        "vnets": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "commonSettings": "[parameters('commonSettings')]",
+        "projectPrefix": "[parameters('commonSettings').projectPrefix]",
+        "vnets": "[parameters('vnets')]",
+        "vmname": "[concat(variables('projectPrefix'), '-', variables('vmname'), '-vm')]",
+        "vmSize": "Standard_DS12_v2",
+        "api": "[parameters('commonSettings').apiVersions]",
+        "repositoryUrl": "[parameters('commonSettings').repositoryUrl]",
+        "adminUsername": "[parameters('commonSettings').stdUsername]",
+        "adminPassword": "[parameters('commonSettings').stdPassword]",
+        "scriptExtensionSettings": {
+            "value": {
+                "fileUris": [
+                    "[uri(deployment().properties.templateLink.uri, 'scripts/DisableFirewall.ps1')]"
+                ],
+                "commandToExecute": "[concat('PowerShell.exe -ExecutionPolicy Bypass -File DisableFirewall.ps1')]"
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('projectPrefix'), variables('vmname'), '-nic')]",
+            "apiVersion": "[variables('api').networkInterfaces]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('vnets').pb.subnet.db.id]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[variables('vmname')]",
+            "apiVersion": "[variables('api').compute]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('commonSettings').stdVmSize]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('vmname')]",
+                    "adminUsername": "[variables('adminUsername')]",
+                    "adminPassword": "[variables('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": "[variables('commonSettings').stdMSSQLImage]",
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks":[
+                        {
+                            "lun": 0,
+                            "name": "[concat(variables('vmname'), 'dataDisk')]",
+                            "createOption": "Empty",
+                            "caching": "ReadOnly",
+                            "diskSizeGB": 1023
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('projectPrefix'), variables('vmname'), '-nic'))]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "type": "extensions",
+                    "name": "CustomScriptExtensionWindows",
+                    "apiVersion": "[variables('api').extensions]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[variables('vmname')]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Compute",
+                        "type": "CustomScriptExtension",
+                        "typeHandlerVersion": "1.8",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": "[variables('scriptExtensionSettings')]"
+                    }
+                }
+            ]
+        }
+    ]
+}

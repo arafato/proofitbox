@@ -150,6 +150,75 @@
                     }
                 ]
             }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[variables('api')]",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('vnets').pb.subnet.nam.nsgName]",
+            "tags": {
+                "displayName": "NetworkSecurityGroup DB"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "block-everything",
+                        "properties": {
+                            "priority": 4096,
+                            "description": "Block all inbound traffic",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "protocol": "*",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').pb.subnet.nam.address]",
+                            "destinationPortRange": "*"
+                        }
+                    },
+                    {
+                        "name": "RDP-Bastion",
+                        "properties": {
+                            "priority": 102,
+                            "description": "Allow RDP",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('vnets').pb.subnet.bastion.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').pb.subnet.db.address]",
+                            "destinationPortRange": "3389"
+                        }
+                    },
+                    {
+                        "name": "Allow-Frontend-Subnet",
+                        "properties": {
+                            "priority": 103,
+                            "description": "Allow Frontend",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('vnets').pb.subnet.frontend.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').pb.subnet.db.address]",
+                            "destinationPortRange": "1433"
+                        }
+                    },
+                    {
+                        "name": "Allow-Frontend-DB",
+                        "properties": {
+                            "priority": 103,
+                            "description": "Allow NAM",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('vnets').pb.subnet.nam.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('vnets').pb.subnet.db.address]",
+                            "destinationPortRange": "1433"
+                        }
+                    }
+                ]
+            }
         }
     ]
 }
