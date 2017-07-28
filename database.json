@@ -55,7 +55,7 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[variables('commonSettings').stdVmSize]"
+                    "vmSize": "[variables('vmSize')]"
                 },
                 "osProfile": {
                     "computerName": "[variables('vmname')]",

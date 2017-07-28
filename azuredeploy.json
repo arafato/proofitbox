@@ -84,7 +84,7 @@
         "sku": "2012-R2-Datacenter",
         "version": "latest"
       },
-      "stdMSQLImage": {
+      "stdMSSQLImage": {
         "publisher": "MicrosoftWindowsServer",
         "offer": "SQL2016SP1-WS2016",
         "sku": "Standard",

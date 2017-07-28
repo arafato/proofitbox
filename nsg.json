@@ -155,7 +155,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "[variables('api')]",
             "location": "[resourceGroup().location]",
-            "name": "[variables('vnets').pb.subnet.nam.nsgName]",
+            "name": "[variables('vnets').pb.subnet.db.nsgName]",
             "tags": {
                 "displayName": "NetworkSecurityGroup DB"
             },
