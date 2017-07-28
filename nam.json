@@ -1,0 +1,160 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "commonSettings": {
+            "type": "object"
+        },
+        "vnets": {
+            "type": "object"
+        },
+        "scriptExtensionSettings": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "commonSettings": "[parameters('commonSettings')]",
+        "projectPrefix": "[parameters('commonSettings').projectPrefix]",
+        "vnets": "[parameters('vnets')]",
+        "vmssName": "[concat(variables('projectPrefix'), 'vmss-nam')]",
+        "publicIP": "[concat(variables('vmssName'), '-pubip')]",
+        "loadbalancerName": "[concat(variables('vmssName'), '-lb')]",
+        "loadbalancerId": "[resourceId('Microsoft.Network/loadBalancers', variables('loadbalancerName'))]",
+        "backendPoolName": "[concat(variables('loadbalancerName'), '-bepool')]",
+        "api": "[parameters('commonSettings').apiVersions]",
+        "adminUsername": "[parameters('commonSettings').stdUsername]",
+        "adminPassword": "[parameters('commonSettings').stdPassword]",
+        "initialVmssSize": 2,
+        "vmNamePrefix": "fe-vm"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[variables('loadBalancerName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api').loadBalancers]",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "LoadBalancerFrontEnd",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('vnets').pb.subnet.nam.id]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('backendPoolName')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "LBRule",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(variables('loadbalancerId'),'/frontendIPConfigurations/LoadBalancerFrontEnd')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(variables('loadbalancerId'), '/backendAddressPools/', variables('backendPoolName'))]"
+                            },
+                            "protocol": "tcp",
+                            "frontendPort": 80,
+                            "backendPort": 8080,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[concat(variables('loadbalancerId'),'/probes/tcpProbe')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "tcpProbe",
+                        "properties": {
+                            "protocol": "tcp",
+                            "port": 8080,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "name": "[variables('vmssName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "[variables('api').compute]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
+            ],
+            "sku": {
+                "name": "[variables('commonSettings').stdVmSize]",
+                "tier": "Standard",
+                "capacity": "[variables('initialVmssSize')]"
+            },
+            "properties": {
+                "overprovision": "true",
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite"
+                        },
+                        "imageReference": "[variables('commonSettings').stdWindowsImage]"
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[variables('vmNamePrefix')]",
+                        "adminUsername": "[variables('adminUsername')]",
+                        "adminPassword": "[variables('adminPassword')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[concat(variables('projectPrefix'), '-vmss-nw-config')]",
+                                "properties": {
+                                    "primary": "true",
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(variables('projectPrefix'), 'vmss-ipConfig')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[variables('vnets').pb.subnet.nam.id]"
+                                                },
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(variables('loadbalancerId'), '/backendAddressPools/', variables('backendPoolName'))]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "customScript",
+                                "properties": {
+                                    "publisher": "Microsoft.Compute",
+                                    "typeHandlerVersion": "1.8",
+                                    "autoUpgradeMinorVersion": true,
+                                    "type": "CustomScriptExtension",
+                                    "settings": "[parameters('scriptExtensionSettings')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

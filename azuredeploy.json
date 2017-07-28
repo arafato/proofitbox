@@ -206,6 +206,38 @@
         "[concat('Microsoft.Resources/deployments/', 'nsg')]",
         "[concat('Microsoft.Resources/deployments/', 'vnet')]"
       ]
+    },
+    {
+      "name": "NAMDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('commonSettings').repositoryUrl, 'nam.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "commonSettings": {
+            "value": "[variables('commonSettings')]"
+          },
+          "vnets": {
+            "value": "[variables('vnets')]"
+          },
+          "scriptExtensionSettings": {
+            "value": {
+              "fileUris": [
+                "[uri(deployment().properties.templateLink.uri, 'scripts/DisableFirewall.ps1')]"
+              ],
+              "commandToExecute": "[concat('PowerShell.exe -ExecutionPolicy Bypass -File DisableFirewall.ps1')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'nsg')]",
+        "[concat('Microsoft.Resources/deployments/', 'vnet')]"
+      ]
     }
   ]
 }

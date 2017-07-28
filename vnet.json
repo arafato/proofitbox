@@ -46,6 +46,15 @@
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vnets').pb.subnet.frontend.nsgName)]"
                             }
                         }
+                    },
+                    {
+                        "name": "[variables('vnets').pb.subnet.nam.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('vnets').pb.subnet.nam.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vnets').pb.subnet.nam.nsgName)]"
+                            }
+                        }
                     }
                 ]
             }
