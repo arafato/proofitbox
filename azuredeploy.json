@@ -67,7 +67,7 @@
           "bastion": {
             "name": "[variables('names').vnetSubBastion]",
             "id": "[concat(variables('commonSettings').resPrefix, '/providers/Microsoft.Network/virtualNetworks/', variables('names').vnetPb, '/subnets/', variables('names').vnetSubBastion)]",
-            "nsgName": "nsg-pb-nam",
+            "nsgName": "nsg-pb-bastion",
             "addressRangePrefix": "10.0.0",
             "address": "10.0.4.0/24"
           }
